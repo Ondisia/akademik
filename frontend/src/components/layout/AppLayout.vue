@@ -17,21 +17,26 @@
 
       <!-- Navigation -->
       <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <RouterLink
-          v-for="item in navigationItems"
-          :key="item.path"
-          :to="item.path"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30"
-          :class="[
-            isActive(item.path) 
-              ? 'bg-indigo-50 text-indigo-700' 
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-          ]"
-          @click="isMobileMenuOpen = false"
-        >
-          <div class="w-5 h-5" v-html="item.icon"></div>
-          {{ item.label }}
-        </RouterLink>
+        <template v-for="group in navigationItems" :key="group.category">
+          <h2 class="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+            {{ group.category }}
+          </h2>
+          <RouterLink
+            v-for="item in group.items"
+            :key="item.path"
+            :to="item.path"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30"
+            :class="[
+              isActive(item.path) 
+                ? 'bg-indigo-50 text-indigo-700' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            ]"
+            @click="isMobileMenuOpen = false"
+          >
+            <div class="w-5 h-5" v-html="item.icon"></div>
+            {{ item.label }}
+          </RouterLink>
+        </template>
       </nav>
 
       <!-- User Profile (Bottom) -->
@@ -108,85 +113,124 @@ watch(() => route.path, () => {
 })
 
 const navigationConfig = [
-  { 
-    label: 'Dashboard', 
-    path: '/dashboard', 
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>'
-  },
-  { 
-    label: 'Siswa', 
-    path: '/students', 
-    roles: ['admin', 'guru', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>'
-  },
-  { 
-    label: 'Kelas', 
-    path: '/classes', 
-    roles: ['admin'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>'
-  },
-  { 
-    label: 'Guru', 
-    path: '/teachers', 
-    roles: ['admin'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>'
-  },
-  { 
-    label: 'Jadwal', 
-    path: '/schedule', 
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>'
-  },
-  { 
-    label: 'Absensi', 
-    path: '/attendance', 
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>'
-  },
-  { 
-    label: 'Nilai', 
-    path: '/grades', 
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>'
-  },
-  { 
-    label: 'Pengumuman', 
-    path: '/announcements', 
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>'
+  {
+    category: 'Navigasi Utama',
+    items: [
+      { 
+        label: 'Dashboard', 
+        path: '/dashboard', 
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>'
+      },
+    ]
   },
   {
-    label: 'Komunikasi',
-    path: '/communication',
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h8M3 20l4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-2l-4 4H3z" /></svg>'  },
-  {
-    label: 'Tagihan',
-    path: '/billing',
-    roles: ['admin', 'guru', 'siswa', 'orang_tua'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 10c-4.418 0-8-1.79-8-4V8c0-2.21 3.582-4 8-4s8 1.79 8 4v6c0 2.21-3.582 4-8 4z" /></svg>'  },
-  {
-    label: 'Ekskul',
-    path: '/ekskul',
-    roles: ['admin', 'guru'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>'
+    category: 'Data Master',
+    items: [
+      { 
+        label: 'Siswa', 
+        path: '/students', 
+        roles: ['admin', 'guru', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>'
+      },
+      { 
+        label: 'Kelas', 
+        path: '/classes', 
+        roles: ['admin'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>'
+      },
+      { 
+        label: 'Guru', 
+        path: '/teachers', 
+        roles: ['admin'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>'
+      },
+    ]
   },
   {
-    label: 'Prestasi',
-    path: '/prestasi',
-    roles: ['admin', 'guru'],
-    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v10a2 2 0 002 2h10a2 2 0 002-2V5m-2 0l3-3m-3 3l3 3" /></svg>'
+    category: 'Akademik',
+    items: [
+      { 
+        label: 'Jadwal', 
+        path: '/schedule', 
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>'
+      },
+      { 
+        label: 'Absensi', 
+        path: '/attendance', 
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>'
+      },
+      { 
+        label: 'Nilai', 
+        path: '/grades', 
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>'
+      },
+    ]
+  },
+  {
+    category: 'Kegiatan Ekskul',
+    items: [
+      {
+        label: 'Ekskul',
+        path: '/ekskul',
+        roles: ['admin', 'guru'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>'
+      },
+      {
+        label: 'Prestasi',
+        path: '/prestasi',
+        roles: ['admin', 'guru'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v10a2 2 0 002 2h10a2 2 0 002-2V5m-2 0l3-3m-3 3l3 3" /></svg>'
+      },
+    ]
+  },
+  {
+    category: 'Informasi',
+    items: [
+      { 
+        label: 'Pengumuman', 
+        path: '/announcements', 
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>'
+      },
+      {
+        label: 'Komunikasi',
+        path: '/communication',
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h8M3 20l4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-2l-4 4H3z" /></svg>'  },
+    ]
+  },
+  {
+    category: 'Keuangan',
+    items: [
+      {
+        label: 'Tagihan',
+        path: '/billing',
+        roles: ['admin', 'guru', 'siswa', 'orang_tua'],
+        icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 10c-4.418 0-8-1.79-8-4V8c0-2.21 3.582-4 8-4s8 1.79 8 4v6c0 2.21-3.582 4-8 4z" /></svg>'  },
+    ]
   }
 ]
 
 const navigationItems = computed(() => {
   const userRole = authStore.user?.role || ''
-  return navigationConfig.filter(item => item.roles.includes(userRole))
+  return navigationConfig
+    .map(group => ({
+      category: group.category,
+      items: group.items.filter(item => item.roles.includes(userRole))
+    }))
+    .filter(group => group.items.length > 0)
 })
 
 const currentRouteLabel = computed(() => {
-  return navigationConfig.find(item => item.path === route.path)?.label || 'Halaman'
+  for (const group of navigationConfig) {
+    const item = group.items.find(i => i.path === route.path)
+    if (item) return item.label
+  }
+  return 'Halaman'
 })
 
 const isActive = (path: string) => {

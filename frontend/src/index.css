@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply antialiased min-h-screen bg-slate-50 text-slate-900;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Keyboard focus must always be visible (WCAG 2.4.7) */
+  :focus-visible {
+    @apply outline-none ring-2 ring-indigo-500/40 ring-offset-2;
+  }
+
+  ::selection {
+    @apply bg-indigo-100 text-indigo-700;
+  }
+}
+
+@layer components {
+  /* Professional Card Component */
+  .clean-card {
+    @apply bg-white border border-slate-200 shadow-subtle rounded-card transition-all duration-200;
+  }
+
+  .clean-card:hover {
+    @apply shadow-clean border-slate-300;
+  }
+
+  /* Alias kept for pages that already use premium-card (audit rule 5) */
+  .premium-card {
+    @apply bg-white border border-slate-200 shadow-subtle rounded-card transition-all duration-200;
+  }
+
+  .premium-card:hover {
+    @apply shadow-clean border-slate-300;
+  }
+
+  /* Professional Button Component */
+  .clean-btn-primary {
+    @apply bg-indigo-600 text-white px-4 py-2 rounded-button font-semibold text-sm hover:bg-indigo-700 transition-colors shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+
+  .clean-btn-secondary {
+    @apply bg-white text-slate-700 px-4 py-2 rounded-button font-semibold text-sm border border-slate-300 hover:bg-slate-50 transition-colors active:scale-[0.98] flex items-center justify-center gap-2;
+  }
+
+  .clean-btn-ghost {
+    @apply text-slate-600 px-4 py-2 rounded-button font-semibold text-sm hover:bg-slate-100 transition-colors flex items-center justify-center gap-2;
+  }
+
+  /* Input Styling Overrides */
+  .clean-input {
+    @apply w-full px-3 py-2 bg-white border border-slate-300 rounded-button text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all;
+  }
+
+  .clean-label {
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full border-2 border-transparent border-solid bg-clip-content hover:bg-slate-400 transition-colors;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Print-friendly view: hide navigation and action buttons for "Cetak ke PDF" */
+@media print {
+  .no-print {
+    display: none !important
+  }
+  aside {
+    display: none !important
+  }
+  header {
+    display: none !important
+  }
+  body {
+    background: white !important
+  }
+}

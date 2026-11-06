@@ -1,47 +1,184 @@
 # Sistem Akademik SMK
 
-Aplikasi manajemen akademik sekolah: backend Express + SQLite, frontend Vue 3 + Tailwind.
-Mendukung 10 peran sekolah dengan pembatasan data per fitur (pimpinan, tata usaha, guru mapel, wali kelas, siswa, orang tua).
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js" alt="Node.js"/>
+  <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=for-the-badge&logo=vue.js" alt="Vue 3"/>
+  <img src="https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite" alt="SQLite"/>
+  <img src="https://img.shields.io/badge/Tailwind-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind CSS"/>
+</p>
 
-## Cara menjalankan
+<p align="center">
+  <b>Aplikasi manajemen akademik sekolah</b> dengan backend Express.js + SQLite dan frontend Vue 3 + Tailwind CSS.<br/>
+  Setiap peran sekolah hanya melihat dan mengubah data yang berwenang.
+</p>
 
-Butuh Node.js 18+.
+---
 
-```bash
-# 1. Backend
-cd backend
-npm install
-npm run seed        # data demo (idempoten, aman diulang)
-npm run dev         # http://localhost:3000
+## 📋 Daftar Isi
 
-# 2. Frontend (terminal lain)
-cd frontend
-npm install
-npm run dev         # http://localhost:5173
-```
+- [Fitur Utama](#-fitur-utama)
+- [Peran yang Didukung](#-peran-yang-didukung)
+- [Akun Login Demo](#-akun-login-demo)
+- [Hak Akses Singkat](#-hak-akses-singkat)
+- [Cara Menjalankan](#-cara-menjalankan)
+- [Relasi Data](#-relasi-data)
+- [Struktur Proyek](#-struktur-proyek)
+- [Pengujian](#-pengujian)
+- [Dokumentasi Lengkap](#-dokumentasi-lengkap)
+- [Catatan](#-catatan)
 
-Atau pakai skrip instalasi otomatis: `setup.bat` (Windows) / `setup.sh` (Linux/macOS).
+---
 
-Backend memerlukan `backend/.env` berisi `JWT_SECRET` (lihat `backend/.env.example`). Tanpa itu server menolak start.
+## 🚀 Fitur Utama
 
-## Akun login
+| Modul | Keterangan |
+|-------|------------|
+| **Manajemen Data** | Siswa, kelas, jurusan, guru, mata pelajaran, jadwal |
+| **Nilai & Absensi** | Input nilai per mata pelajaran, presensi harian, rekapitulasi |
+| **Ekskul & Prestasi** | Kegiatan ekstrakurikuler dan prestasi siswa |
+| **Tagihan & Pembayaran** | SPP, status lunas/belum, unggah bukti bayar |
+| **Pengumuman & Komunikasi** | Informasi sekolah dan pesan antar role |
+| **Laporan** | Ekspor data ke CSV |
+| **Pembatasan Peran** | Setiap role hanya akses data yang berwenang |
+
+---
+
+## 👥 Peran yang Didukung
+
+<table>
+  <tr>
+    <th>Peran</th>
+    <th>Nilai Role</th>
+    <th>Tanggung jawab inti</th>
+  </tr>
+  <tr>
+    <td>Administrator</td>
+    <td><code>admin</code></td>
+    <td>Akses penuh sistem</td>
+  </tr>
+  <tr>
+    <td>Kepala Sekolah</td>
+    <td><code>kepala_sekolah</code></td>
+    <td>Pimpinan, monitoring semua modul</td>
+  </tr>
+  <tr>
+    <td>Wakil Kepala Sekolah</td>
+    <td><code>waka</code></td>
+    <td>Pimpinan, monitoring semua modul</td>
+  </tr>
+  <tr>
+    <td>Kepala Tata Usaha</td>
+    <td><code>kepala_tu</code></td>
+    <td>Tata usaha, keuangan, data siswa</td>
+  </tr>
+  <tr>
+    <td>Staf Tata Usaha</td>
+    <td><code>staff_tu</code></td>
+    <td>Tata usaha, keuangan, data siswa</td>
+  </tr>
+  <tr>
+    <td>Guru Mapel</td>
+    <td><code>guru_mapel</code></td>
+    <td>Nilai dan absensi pada mapel + kelas yang diampu</td>
+  </tr>
+  <tr>
+    <td>Guru</td>
+    <td><code>guru</code></td>
+    <td>Role lama, dipertahankan untuk kompatibilitas</td>
+  </tr>
+  <tr>
+    <td>Wali Kelas</td>
+    <td><code>wali_kelas</code></td>
+    <td>Siswa di kelasnya; lihat tagihan (tidak boleh tulis)</td>
+  </tr>
+  <tr>
+    <td>Siswa</td>
+    <td><code>siswa</code></td>
+    <td>Data dan nilai/absensi sendiri</td>
+  </tr>
+  <tr>
+    <td>Orang Tua</td>
+    <td><code>orang_tua</code></td>
+    <td>Data dan tagihan anaknya saja</td>
+  </tr>
+</table>
+
+---
+
+## 🔑 Akun Login Demo
 
 Semua akun dibuat oleh `npm run seed`. Password peka huruf besar/kecil.
 
-| Peran | Email | Password | Kelas / Relasi |
-|-------|-------|----------|----------------|
-| Administrator | `admin@example.com` | `Password123` | akses penuh |
-| Kepala Sekolah | `kepsek@smk.id` | `Password123` | pimpinan |
-| Wakil Kepala Sekolah | `waka@smk.id` | `Password123` | pimpinan |
-| Wali Kelas | `wali1@smk.id` | `Password123` | wali kelas **X RPL 1** |
-| Guru Mapel | `guru1@smk.id` | `Password123` | Informatika & Pemrograman Web, X RPL 1 |
-| Guru (role lama) | `guru@smk.id` | `guru123` | Informatika X RPL 1, Pemrograman Web XI RPL 1 |
-| Kepala Tata Usaha | `kepalatu@smk.id` | `Password123` | keuangan + data siswa |
-| Staf Tata Usaha | `stafftu@smk.id` | `Password123` | keuangan + data siswa |
-| Siswa | `siswa@smk.id` | `siswa123` | akun demo, id bukan `std-001` sehingga daftar nilainya kosong |
-| Orang Tua | `ortu@smk.id` | `ortu123` | orang tua dari Ahmad Fauzi (`std-001`) dan Bella Putri Lestari (`std-002`) |
+<table>
+  <tr>
+    <th>Peran</th>
+    <th>Email</th>
+    <th>Password</th>
+    <th>Catatan</th>
+  </tr>
+  <tr>
+    <td>Administrator</td>
+    <td><code>admin@example.com</code></td>
+    <td><code>Password123</code></td>
+    <td>Akses penuh</td>
+  </tr>
+  <tr>
+    <td>Kepala Sekolah</td>
+    <td><code>kepsek@smk.id</code></td>
+    <td><code>Password123</code></td>
+    <td>Pimpinan</td>
+  </tr>
+  <tr>
+    <td>Wakil Kepala Sekolah</td>
+    <td><code>waka@smk.id</code></td>
+    <td><code>Password123</code></td>
+    <td>Pimpinan</td>
+  </tr>
+  <tr>
+    <td>Wali Kelas</td>
+    <td><code>wali1@smk.id</code></td>
+    <td><code>Password123</code></td>
+    <td>Kelas X RPL 1</td>
+  </tr>
+  <tr>
+    <td>Guru Mapel</td>
+    <td><code>guru1@smk.id</code></td>
+    <td><code>Password123</code></td>
+    <td>Informatika + Pemrograman Web, X RPL 1</td>
+  </tr>
+  <tr>
+    <td>Guru</td>
+    <td><code>guru@smk.id</code></td>
+    <td><code>guru123</code></td>
+    <td>Role lama</td>
+  </tr>
+  <tr>
+    <td>Kepala Tata Usaha</td>
+    <td><code>kepalatu@smk.id</code></td>
+    <td><code>Password123</code></td>
+    <td>Keuangan + data siswa</td>
+  </tr>
+  <tr>
+    <td>Staf Tata Usaha</td>
+    <td><code>stafftu@smk.id</code></td>
+    <td><code>Password123</code></td>
+    <td>Keuangan + data siswa</td>
+  </tr>
+  <tr>
+    <td>Siswa</td>
+    <td><code>siswa@smk.id</code></td>
+    <td><code>siswa123</code></td>
+    <td>Demo, data sendiri</td>
+  </tr>
+  <tr>
+    <td>Orang Tua</td>
+    <td><code>ortu@smk.id</code></td>
+    <td><code>ortu123</code></td>
+    <td>Anak: std-001 dan std-002</td>
+  </tr>
+</table>
 
-Contoh uji cepat per peran:
+Contoh uji login:
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
@@ -49,44 +186,105 @@ curl -X POST http://localhost:3000/api/auth/login \
   -d '{"email":"wali1@smk.id","password":"Password123"}'
 ```
 
-## Hak akses ringkas
+---
 
-Baca = boleh membuka halaman/endpoint. Tulis = boleh tambah/ubah/hapus.
+## 🔒 Hak Akses Singkat
 
-| Fitur | Baca | Tulis |
-|-------|------|-------|
-| Dashboard | semua | admin, kepala_sekolah, waka |
-| Siswa | admin, kepala_sekolah, waka, kepala_tu, staff_tu, wali_kelas (kelasnya), guru_mapel/guru (kelas diampu), siswa (diri), orang_tua (anaknya) | admin, kepala_tu, staff_tu |
-| Kelas | admin, kepala_sekolah, waka, kepala_tu, staff_tu, wali_kelas, guru_mapel, guru | admin, kepala_tu, staff_tu |
-| Guru | admin, kepala_sekolah, waka, kepala_tu, staff_tu | admin |
-| Jadwal | semua | admin, kepala_sekolah, waka |
-| Absensi | semua (data dibatasi per peran) | admin, kepala_sekolah, waka, guru_mapel/guru (kelas diampu), wali_kelas (kelasnya) |
-| Nilai | semua (data dibatasi per peran) | admin, kepala_sekolah, waka, guru_mapel/guru (mapel + kelas diampu), wali_kelas (kelasnya) |
-| Pengumuman | semua | admin, kepala_sekolah, waka |
-| Komunikasi | semua | admin, kepala_sekolah, waka, guru_mapel, wali_kelas, guru |
-| Tagihan | admin, kepala_sekolah, waka, kepala_tu, staff_tu, wali_kelas (lihat), siswa (miliknya), orang_tua (anaknya) | admin, kepala_tu, staff_tu |
-| Ekskul | semua | admin, kepala_sekolah, waka |
-| Prestasi | semua | admin, kepala_sekolah, waka |
+Baca = boleh membuka halaman. Tulis = boleh tambah/ubah/hapus.
 
-Aturan khusus:
+<table>
+  <tr>
+    <th>Fitur</th>
+    <th>Baca</th>
+    <th>Tulis</th>
+  </tr>
+  <tr>
+    <td>Dashboard</td>
+    <td>semua role</td>
+    <td>admin, kepala_sekolah, waka</td>
+  </tr>
+  <tr>
+    <td>Siswa</td>
+    <td>admin, pimpinan, TU, wali_kelas (kelasnya), guru_mapel/guru (kelas diampu), siswa (diri), orang_tua (anak)</td>
+    <td>admin, kepala_tu, staff_tu</td>
+  </tr>
+  <tr>
+    <td>Kelas</td>
+    <td>admin, pimpinan, TU, wali_kelas, guru_mapel, guru</td>
+    <td>admin, kepala_tu, staff_tu</td>
+  </tr>
+  <tr>
+    <td>Guru</td>
+    <td>admin, pimpinan, TU, staff_tu</td>
+    <td>admin</td>
+  </tr>
+  <tr>
+    <td>Jadwal</td>
+    <td>semua role</td>
+    <td>admin, kepala_sekolah, waka</td>
+  </tr>
+  <tr>
+    <td>Absensi</td>
+    <td>semua role (data dibatasi)</td>
+    <td>admin, pimpinan, guru_mapel/guru (kelas diampu), wali_kelas (kelasnya)</td>
+  </tr>
+  <tr>
+    <td>Nilai</td>
+    <td>semua role (data dibatasi)</td>
+    <td>admin, pimpinan, guru_mapel/guru (mapel+kelas diampu), wali_kelas (kelasnya)</td>
+  </tr>
+  <tr>
+    <td>Pengumuman</td>
+    <td>semua role</td>
+    <td>admin, kepala_sekolah, waka</td>
+  </tr>
+  <tr>
+    <td>Komunikasi</td>
+    <td>semua role</td>
+    <td>admin, pimpinan, guru_mapel, wali_kelas, guru</td>
+  </tr>
+  <tr>
+    <td>Tagihan</td>
+    <td>admin, pimpinan, TU, wali_kelas (lihat), siswa (sendiri), orang_tua (anak)</td>
+    <td>admin, kepala_tu, staff_tu</td>
+  </tr>
+  <tr>
+    <td>Ekskul & Prestasi</td>
+    <td>semua role</td>
+    <td>admin, kepala_sekolah, waka</td>
+  </tr>
+</table>
 
-- `guru_mapel` dan `guru` **tidak** boleh mengakses Tagihan (`GET /api/bills` → `403`).
-- `wali_kelas` boleh melihat Tagihan siswanya, tetapi tidak boleh menulis.
-- `orang_tua` hanya bisa mengunggah bukti bayar untuk tagihan anaknya.
-- `wali_kelas` tanpa kolom `class` tidak melihat data apa pun.
+> **Aturan penting:**
+> - `guru_mapel` dan `guru` **tidak** boleh mengakses Tagihan (`GET /api/bills` → `403`).
+> - `wali_kelas` hanya boleh **melihat** Tagihan siswanya, tidak boleh tulis.
+> - `orang_tua` hanya boleh mengunggah bukti bayar untuk tagihan anaknya.
+> - Detail lengkap: [`docs/roles-permissions.md`](docs/roles-permissions.md).
 
-Detail lengkap: [`docs/roles-permissions.md`](docs/roles-permissions.md).
+---
 
-## Relasi data
+## 🗄️ Relasi Data
 
-| Tabel | Isi |
-|-------|-----|
-| `parent_students(parent_id, student_id)` | relasi orang tua ke anak (banyak anak diperbolehkan) |
-| `teacher_assignments(id, teacher_id, subject, class)` | mapel dan kelas yang diampu guru |
+<table>
+  <tr>
+    <th>Tabel</th>
+    <th>Isi</th>
+  </tr>
+  <tr>
+    <td><code>parent_students(parent_id, student_id)</code></td>
+    <td>Orang tua ↔ anak (banyak anak diperbolehkan)</td>
+  </tr>
+  <tr>
+    <td><code>teacher_assignments(id, teacher_id, subject, class)</code></td>
+    <td>Mapel + kelas yang diampu guru</td>
+  </tr>
+</table>
 
-Kelola lewat API `/api/relations` (baca: admin, kepala_sekolah, waka, kepala_tu, staff_tu). Belum ada halaman UI.
+Kelola lewat API `/api/relations` (belum ada halaman UI).
 
-## Struktur proyek
+---
+
+## 📁 Struktur Proyek
 
 ```
 akademik/
@@ -94,10 +292,10 @@ akademik/
 |   +-- server.js              # Entry point Express
 |   +-- database.js            # Skema SQLite + migrasi idempotent
 |   +-- scope.js               # Aturan pembatasan data per peran
-|   +-- middleware/            # auth (JWT) + roleCheck
-|   +-- routes/                # auth, students, teachers, grades, ...
+|   +-- middleware/            # JWT auth + roleCheck
+|   +-- routes/                # auth, siswa, guru, nilai, absensi, tagihan, ...
 |   +-- scripts/seedDemo.js    # Seed data demo (idempoten)
-|   +-- smoke-run.cjs          # Uji role/relasi (39 pemeriksaan)
+|   +-- smoke-run.cjs          # Uji otomatis peran + relasi (39 pemeriksaan)
 |   +-- stress-test.js         # Uji beban
 +-- frontend/
 |   +-- src/
@@ -110,29 +308,99 @@ akademik/
 +-- docs/
 ```
 
-## Pengujian
+---
+
+## ▶️ Cara Menjalankan
+
+Butuh Node.js 18+.
+
+### Terminal 1 — Backend
 
 ```bash
 cd backend
-node smoke-run.cjs                       # role + relasi, 39 pemeriksaan
-node stress-test.js 80 25                # butuh server berjalan
-cd ../frontend && npm run build          # type check + build produksi
+npm install
+cp .env.example .env        # isi JWT_SECRET
+npm run seed                # data demo (idempoten)
+npm run dev                 # http://localhost:3000
 ```
 
-## Dokumentasi lain
+### Terminal 2 — Frontend
 
-| File | Isi |
-|------|-----|
-| [`docs/roles-permissions.md`](docs/roles-permissions.md) | Matriks hak akses lengkap, relasi, API relasi |
-| [`docs/docs-full.md`](docs/docs-full.md) | Dokumentasi lengkap: teknologi, fungsi, masalah lapangan |
-| [`docs/docs-tech.md`](docs/docs-tech.md) | Detail teknis |
-| [`docs/docs-field-problems.md`](docs/docs-field-problems.md) | Analisis masalah lapangan |
-| [`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md) | Audit keamanan |
-| [`docs/UI-UX-AUDIT.md`](docs/UI-UX-AUDIT.md) | Audit UI/UX |
-| [`docs/STRESS-TEST-REPORT.md`](docs/STRESS-TEST-REPORT.md) | Laporan uji beban |
-| [`docs/TEAM-DOCS.md`](docs/TEAM-DOCS.md) | Pembagian tim |
+```bash
+cd frontend
+npm install
+npm run dev                 # http://localhost:5173
+```
 
-## Catatan
+Alternatif pakai skrip instalasi otomatis: `setup.bat` (Windows) / `setup.sh` (Linux/macOS).
 
-- `backend/.env`, `*.db`, `node_modules`, `dist`, dan file log tidak di-commit.
-- Akun `siswa@smk.id` adalah akun demo lama dengan id uuid, bukan `std-001`; daftar nilai/absensi/tagihannya kosong saat login. Untuk demo data siswa, pakai akun admin/wali kelas.
+Backend menolak start jika `backend/.env` tidak memiliki `JWT_SECRET`. Lihat `backend/.env.example`.
+
+---
+
+## 🧪 Pengujian
+
+```bash
+cd backend
+node smoke-run.cjs      # uji otomatis peran + relasi (39 pemeriksaan)
+node stress-test.js 80 25  # uji beban (butuh server berjalan)
+
+cd ../frontend
+npm run build           # type check + build produksi
+```
+
+---
+
+## 📚 Dokumentasi Lengkap
+
+<table>
+  <tr>
+    <th>File</th>
+    <th>Isi</th>
+  </tr>
+  <tr>
+    <td><a href="docs/roles-permissions.md"><code>roles-permissions.md</code></a></td>
+    <td>Matriks hak akses lengkap, relasi, API relasi</td>
+  </tr>
+  <tr>
+    <td><a href="docs/docs-full.md"><code>docs-full.md</code></a></td>
+    <td>Dokumentasi lengkap: teknologi, fungsi, masalah lapangan</td>
+  </tr>
+  <tr>
+    <td><a href="docs/docs-tech.md"><code>docs-tech.md</code></a></td>
+    <td>Detail teknis</td>
+  </tr>
+  <tr>
+    <td><a href="docs/docs-field-problems.md"><code>docs-field-problems.md</code></a></td>
+    <td>Analisis masalah lapangan</td>
+  </tr>
+  <tr>
+    <td><a href="docs/SECURITY-AUDIT.md"><code>SECURITY-AUDIT.md</code></a></td>
+    <td>Audit keamanan</td>
+  </tr>
+  <tr>
+    <td><a href="docs/UI-UX-AUDIT.md"><code>UI-UX-AUDIT.md</code></a></td>
+    <td>Audit UI/UX</td>
+  </tr>
+  <tr>
+    <td><a href="docs/STRESS-TEST-REPORT.md"><code>STRESS-TEST-REPORT.md</code></a></td>
+    <td>Laporan uji beban</td>
+  </tr>
+  <tr>
+    <td><a href="docs/TEAM-DOCS.md"><code>TEAM-DOCS.md</code></a></td>
+    <td>Pembagian tim</td>
+  </tr>
+</table>
+
+---
+
+## ⚠️ Catatan
+
+- `backend/.env`, `*.db`, `node_modules`, `dist`, dan file log **tidak** di-commit (lihat `.gitignore`).
+- Akun `siswa@smk.id` adalah akun demo lama (id uuid, bukan `std-001`); nilainya kosong saat login. Untuk demo data siswa, gunakan akun admin atau wali kelas.
+
+---
+
+<p align="center">
+  <sub>Sistem Akademik SMK · Backend Express + SQLite · Frontend Vue 3 + Tailwind CSS</sub>
+</p>

@@ -58,8 +58,40 @@ Semua password `Password123` kecuali yang tertulis lain.
 | siswa@smk.id | siswa (password `siswa123`) | - |
 | ortu@smk.id | orang_tua (password `ortu123`) | - |
 
+## Relasi data
+
+Dua tabel relasi dipakai untuk pembatasan data:
+
+| Tabel | Isi | Efek |
+|-------|-----|------|
+| `parent_students(parent_id, student_id)` | relasi orang tua ke anak | `orang_tua` hanya melihat siswa, nilai, absensi, dan tagihan anaknya |
+| `teacher_assignments(id, teacher_id, subject, class)` | mapel dan kelas yang diampu guru | `guru_mapel`/`guru` hanya melihat siswa di kelas yang diampu, nilai pada mapel yang diampu, dan hanya boleh menulis nilai/absensi pada pasangan mapel+kelas tersebut |
+
+Aturan tulis:
+
+- `guru_mapel`/`guru`: menulis nilai hanya untuk mapel & kelas yang diampu; menulis absensi hanya untuk kelas yang diampu. Di luar itu `403`.
+- `wali_kelas`: menulis nilai/absensi hanya untuk kelasnya. `GET /api/bills` tetap boleh, tulis tagihan `403`.
+- `orang_tua`: hanya boleh mengunggah bukti bayar untuk tagihan anaknya, selain itu `403`.
+- `wali_kelas` tanpa kolom `class` tidak melihat data apa pun (`1 = 0`), bukan semua data.
+
+## Mengelola relasi
+
+Belum ada halaman UI; kelola lewat API (butuh token admin):
+
+```
+GET    /api/relations/parents
+POST   /api/relations/parents              { "parentEmail": "...", "studentId": "std-001" }
+DELETE /api/relations/parents/:parentId/:studentId
+
+GET    /api/relations/teacher-assignments
+POST   /api/relations/teacher-assignments  { "teacherEmail": "...", "subject": "Informatika", "class": "X RPL 1" }
+DELETE /api/relations/teacher-assignments/:id
+```
+
+Hak akses: baca untuk `admin`, `kepala_sekolah`, `waka`, `kepala_tu`, `staff_tu`; tulis relasi orang tua untuk `admin`, `kepala_tu`; tulis penugasan guru untuk `admin`, `kepala_sekolah`.
+
 ## Batasan yang diketahui
 
-- Relasi orang tua–anak belum ada; `orang_tua` sementara melihat semua data.
-- Pemetaan guru mapel–mata pelajaran belum ada; `guru_mapel` sementara melihat semua nilai/absensi.
-- Uji cepat: `node backend/smoke-run.cjs` (menjalankan server sementara + `smoke-roles.mjs`).
+- Halaman UI untuk mengelola relasi orang tua–anak dan penugasan guru belum ada.
+- `siswa@smk.id` adalah akun demo dengan id uuid, bukan `std-001`, sehingga datanya kosong saat login.
+- Uji cepat: `node backend/smoke-run.cjs` (server sementara + 39 pemeriksaan role/relasi).

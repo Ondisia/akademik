@@ -101,6 +101,20 @@ db.exec(`
     created_at TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS parent_students (
+    parent_id TEXT NOT NULL,
+    student_id TEXT NOT NULL,
+    PRIMARY KEY (parent_id, student_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS teacher_assignments (
+    id TEXT PRIMARY KEY,
+    teacher_id TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    class TEXT NOT NULL,
+    UNIQUE (teacher_id, subject, class)
+  );
+
   CREATE TABLE IF NOT EXISTS prestasi (
     id TEXT PRIMARY KEY,
     student_id TEXT,

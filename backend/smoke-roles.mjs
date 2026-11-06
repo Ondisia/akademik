@@ -107,6 +107,48 @@ const waliStudentIds = new Set((waliStudents.body || []).map((s) => s.id));
 const waliGradesScoped = (waliGradesScopedRes.body || []).every((g) => waliStudentIds.has(g.studentId));
 check('wali_kelas /grades only own class', waliGradesScoped, true);
 
+// Relasi orang tua -> anak
+const ortuStudents = await req(tokens.ortu, 'GET', '/students');
+const ortuIds = (ortuStudents.body || []).map((s) => s.id).sort().join(',');
+check('orang_tua /students hanya anak sendiri', ortuIds === 'std-001,std-002', true);
+
+const ortuGrades = await req(tokens.ortu, 'GET', '/grades');
+check('orang_tua /grades hanya anak sendiri', (ortuGrades.body || []).length > 0 && ortuGrades.body.every((g) => ['std-001', 'std-002'].includes(g.studentId)), true);
+
+const ortuBills = await req(tokens.ortu, 'GET', '/bills');
+check('orang_tua /bills hanya anak sendiri', (ortuBills.body || []).length > 0 && ortuBills.body.every((b) => ['std-001', 'std-002'].includes(b.student_id)), true);
+
+const allBills = (await req(tokens.admin, 'GET', '/bills')).body;
+const otherBill = allBills.find((b) => !['std-001', 'std-002'].includes(b.student_id));
+check('orang_tua PUT tagihan anak lain = 403', (await req(tokens.ortu, 'PUT', `/bills/${otherBill.id}`, { paymentProof: 'data:image/png;base64,AA==', proofFilename: 'bukti.png' })).status, 403);
+check('orang_tua PUT tagihan anak sendiri = 200', (await req(tokens.ortu, 'PUT', `/bills/${ortuBills.body[0].id}`, { paymentProof: 'data:image/png;base64,AA==', proofFilename: 'bukti.png' })).status, 200);
+
+// Relasi guru -> mapel/kelas
+const guruStudents = await req(tokens.guru1, 'GET', '/students');
+check('guru_mapel /students hanya kelas yang diampu', (guruStudents.body || []).length > 0 && guruStudents.body.every((s) => s.class === 'X RPL 1'), true);
+
+const guruGradesScoped = await req(tokens.guru1, 'GET', '/grades');
+const taughtSubjects = new Set(['Informatika', 'Pemrograman Web']);
+check('guru_mapel /grades hanya mapel yang diampu', (guruGradesScoped.body || []).length > 0 && guruGradesScoped.body.every((g) => taughtSubjects.has(g.subject)), true);
+
+const xStudent = guruStudents.body[0];
+const xiStudent = (await req(tokens.admin, 'GET', '/students')).body.find((s) => s.class === 'XI RPL 1');
+const gradeBody = (student, subject) => ({ studentId: student.id, studentName: student.name, subject, score: 90, date: '2026-01-02' });
+check('guru_mapel POST nilai mapel lain = 403', (await req(tokens.guru1, 'POST', '/grades', gradeBody(xStudent, 'Matematika'))).status, 403);
+check('guru_mapel POST nilai kelas lain = 403', (await req(tokens.guru1, 'POST', '/grades', gradeBody(xiStudent, 'Informatika'))).status, 403);
+const goodGrade = await req(tokens.guru1, 'POST', '/grades', gradeBody(xStudent, 'Informatika'));
+check('guru_mapel POST nilai mapel sendiri = 201', goodGrade.status, 201);
+if (goodGrade.body?.id) await req(tokens.admin, 'DELETE', `/grades/${goodGrade.body.id}`);
+
+const attBody = (student) => ({ attendances: [{ studentId: student.id, studentName: student.name, date: '2030-01-01', status: 'hadir' }] });
+check('guru_mapel POST absensi kelas lain = 403', (await req(tokens.guru1, 'POST', '/attendances', attBody(xiStudent))).status, 403);
+check('guru_mapel POST absensi kelas sendiri = 201', (await req(tokens.guru1, 'POST', '/attendances', attBody(xStudent))).status, 201);
+await req(tokens.admin, 'DELETE', `/attendances/att-${xStudent.id}-2030-01-01`);
+
+// API relasi
+check('wali_kelas GET /relations/parents = 403', (await req(tokens.wali1, 'GET', '/relations/parents')).status, 403);
+check('admin GET relations = 200', (await req(tokens.admin, 'GET', '/relations/teacher-assignments')).status, 200);
+
 const failed = results.filter(r => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 if (failed.length) { console.log('FAILURES:', JSON.stringify(failed, null, 2)); process.exit(1); }

@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
+const { isChildOf } = require('../scope');
 
 // GET /api/bills
 router.get('/', authenticateToken, (req, res) => {
@@ -24,8 +25,10 @@ router.get('/', authenticateToken, (req, res) => {
     } else if (role === 'wali_kelas' && req.user.class) {
         conditions.push('s.class = ?');
         params.push(req.user.class);
+    } else if (role === 'orang_tua') {
+        conditions.push('b.student_id IN (SELECT student_id FROM parent_students WHERE parent_id = ?)');
+        params.push(req.user.id);
     }
-    // TODO: orang_tua belum punya relasi anak, sementara tampil semua
 
     if (studentId) {
         conditions.push('b.student_id = ?');
@@ -98,6 +101,9 @@ router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staf
     const updatedAt = new Date().toISOString();
 
     if (userRole === 'orang_tua') {
+        if (!isChildOf(req.user, existing.student_id)) {
+            return res.status(403).json({ message: 'Akses ditolak: tagihan bukan milik anak Anda' });
+        }
         if (!paymentProof || !proofFilename) {
             return res.status(400).json({ message: 'Bukti bayar wajib diunggah oleh orang tua' });
         }

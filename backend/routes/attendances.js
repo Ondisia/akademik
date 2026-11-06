@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
+const { recordScope, canManageStudent } = require('../scope');
 
 function mapAttendance(a) {
   return {
@@ -15,14 +16,9 @@ function mapAttendance(a) {
   };
 }
 
-// Batasi data absensi sesuai peran; dipakai untuk daftar.
+// Batasi data absensi sesuai peran; dipakai untuk daftar dan statistik.
 function scopeFor(user) {
-  if (user.role === 'siswa') return { sql: 'student_id = ?', params: [user.id] };
-  if (user.role === 'wali_kelas' && user.class) {
-    return { sql: 'student_id IN (SELECT id FROM students WHERE class = ?)', params: [user.class] };
-  }
-  // TODO: guru_mapel belum punya relasi mapel-kelas; orang_tua belum punya relasi anak
-  return { sql: '1 = 1', params: [] };
+  return recordScope(user);
 }
 
 // GET /api/attendances
@@ -55,7 +51,10 @@ router.get('/', authenticateToken, (req, res) => {
 // GET /api/attendances/stats — statistik hari ini
 router.get('/stats/today', authenticateToken, (req, res) => {
   const today = new Date().toISOString().split('T')[0];
-  const rows = db.prepare('SELECT status, COUNT(*) as count FROM attendances WHERE date = ? GROUP BY status').all(today);
+  const scope = scopeFor(req.user);
+  const rows = db
+    .prepare(`SELECT status, COUNT(*) as count FROM attendances WHERE date = ? AND (${scope.sql}) GROUP BY status`)
+    .all(today, ...scope.params);
 
   const stats = { total: 0, present: 0, absent: 0, permission: 0 };
   for (const row of rows) {
@@ -73,6 +72,11 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'w
 
   if (!Array.isArray(attendances) || attendances.length === 0) {
     return res.status(400).json({ message: 'Data absensi tidak valid' });
+  }
+
+  const denied = attendances.find((a) => !canManageStudent(req.user, a.studentId, null));
+  if (denied) {
+    return res.status(403).json({ message: 'Akses ditolak: ada siswa di luar kelas yang Anda ampu' });
   }
 
   const upsert = db.prepare(`
@@ -98,8 +102,13 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'w
 
 // DELETE /api/attendances/:id
 router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
-  const result = db.prepare('DELETE FROM attendances WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ message: 'Data absensi tidak ditemukan' });
+  const existing = db.prepare('SELECT * FROM attendances WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Data absensi tidak ditemukan' });
+  if (!canManageStudent(req.user, existing.student_id, null)) {
+    return res.status(403).json({ message: 'Akses ditolak: siswa di luar kelas yang Anda ampu' });
+  }
+
+  db.prepare('DELETE FROM attendances WHERE id = ?').run(req.params.id);
   res.json({ message: 'Absensi berhasil dihapus' });
 });
 

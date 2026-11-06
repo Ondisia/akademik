@@ -21,6 +21,7 @@ const billingRoutes = require('./routes/billings');
 const settingsRoutes = require('./routes/settings');
 const ekskulRoutes = require('./routes/ekskul');
 const prestasiRoutes = require('./routes/prestasi');
+const relationRoutes = require('./routes/relations');
 
 // Mounting Routes
 app.use('/api/auth', authRoutes);
@@ -34,6 +35,7 @@ app.use('/api/bills', billingRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/ekskul', ekskulRoutes);
 app.use('/api/prestasi', prestasiRoutes);
+app.use('/api/relations', relationRoutes);
 
 // Endpoint dasar (Home)
 app.get('/', (req, res) => {

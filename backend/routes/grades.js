@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
+const { isTeacher, recordScope, canManageStudent, canManageSubject } = require('../scope');
 
 function mapGrade(g) {
   return {
@@ -17,12 +18,13 @@ function mapGrade(g) {
 
 // Batasi data nilai sesuai peran; dipakai untuk daftar dan detail.
 function scopeFor(user) {
-  if (user.role === 'siswa') return { sql: 'student_id = ?', params: [user.id] };
-  if (user.role === 'wali_kelas' && user.class) {
-    return { sql: 'student_id IN (SELECT id FROM students WHERE class = ?)', params: [user.class] };
-  }
-  // TODO: guru_mapel belum punya relasi mapel-kelas; orang_tua belum punya relasi anak
-  return { sql: '1 = 1', params: [] };
+  const scope = recordScope(user);
+  if (!isTeacher(user)) return scope;
+  // Guru mapel: hanya mapel yang diampu (kelas sudah dibatasi recordScope).
+  return {
+    sql: `${scope.sql} AND subject IN (SELECT subject FROM teacher_assignments WHERE teacher_id = ?)`,
+    params: [...scope.params, user.id]
+  };
 }
 
 // GET /api/grades
@@ -66,6 +68,10 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'w
     return res.status(400).json({ message: 'Data tidak lengkap' });
   }
 
+  if (!canManageStudent(req.user, studentId, subject)) {
+    return res.status(403).json({ message: 'Akses ditolak: bukan siswa/mapel yang Anda ampu' });
+  }
+
   const id = `grade-${Date.now()}`;
 
   db.prepare(`
@@ -85,13 +91,19 @@ router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 
   const existing = db.prepare('SELECT * FROM grades WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ message: 'Data nilai tidak ditemukan' });
 
+  const nextStudentId = studentId ?? existing.student_id;
+  const nextSubject = subject ?? existing.subject;
+  if (!canManageSubject(req.user, nextSubject) || !canManageStudent(req.user, nextStudentId, nextSubject)) {
+    return res.status(403).json({ message: 'Akses ditolak: bukan siswa/mapel yang Anda ampu' });
+  }
+
   db.prepare(`
     UPDATE grades SET student_id = ?, student_name = ?, subject = ?, score = ?, date = ?
     WHERE id = ?
   `).run(
-    studentId ?? existing.student_id,
+    nextStudentId,
     studentName ?? existing.student_name,
-    subject ?? existing.subject,
+    nextSubject,
     score ?? existing.score,
     date ?? existing.date,
     id
@@ -103,8 +115,13 @@ router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 
 
 // DELETE /api/grades/:id
 router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
-  const result = db.prepare('DELETE FROM grades WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ message: 'Data nilai tidak ditemukan' });
+  const existing = db.prepare('SELECT * FROM grades WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Data nilai tidak ditemukan' });
+  if (!canManageSubject(req.user, existing.subject) || !canManageStudent(req.user, existing.student_id, existing.subject)) {
+    return res.status(403).json({ message: 'Akses ditolak: bukan siswa/mapel yang Anda ampu' });
+  }
+
+  db.prepare('DELETE FROM grades WHERE id = ?').run(req.params.id);
   res.json({ message: 'Data nilai berhasil dihapus' });
 });
 

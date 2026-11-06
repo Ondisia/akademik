@@ -3,20 +3,13 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
-
-// Batasi data sesuai peran; dipakai untuk daftar dan detail.
-function scopeFor(user) {
-  if (user.role === 'siswa') return { sql: 'id = ?', params: [user.id] };
-  if (user.role === 'wali_kelas' && user.class) return { sql: 'class = ?', params: [user.class] };
-  // TODO: orang_tua belum punya relasi anak, sementara tampil semua
-  return { sql: '1 = 1', params: [] };
-}
+const { studentScope } = require('../scope');
 
 // GET /api/students — ambil semua siswa
 router.get('/', authenticateToken, (req, res) => {
   const { search, class: classFilter } = req.query;
   let query = 'SELECT * FROM students';
-  const scope = scopeFor(req.user);
+  const scope = studentScope(req.user);
   const params = [...scope.params];
   const conditions = [scope.sql];
 
@@ -38,7 +31,7 @@ router.get('/', authenticateToken, (req, res) => {
 
 // GET /api/students/:id
 router.get('/:id', authenticateToken, (req, res) => {
-  const scope = scopeFor(req.user);
+  const scope = studentScope(req.user);
   const student = db
     .prepare(`SELECT * FROM students WHERE id = ? AND (${scope.sql})`)
     .get(req.params.id, ...scope.params);

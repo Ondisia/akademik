@@ -244,6 +244,37 @@ function seedPrestasi() {
   return added;
 }
 
+function seedRelations() {
+  const findUser = db.prepare('SELECT id FROM users WHERE email = ?');
+  const ortu = findUser.get('ortu@smk.id');
+  const guru1 = findUser.get('guru1@smk.id');
+  const guru = findUser.get('guru@smk.id');
+
+  const linkParent = db.prepare(
+    'INSERT OR IGNORE INTO parent_students (parent_id, student_id) VALUES (?, ?)'
+  );
+  let added = 0;
+  if (ortu) {
+    for (const studentId of ['std-001', 'std-002']) added += linkParent.run(ortu.id, studentId).changes;
+  }
+
+  const assign = db.prepare(
+    'INSERT OR IGNORE INTO teacher_assignments (id, teacher_id, subject, class) VALUES (?, ?, ?, ?)'
+  );
+  const rows = [];
+  if (guru1) {
+    rows.push([guru1.id, 'Informatika', 'X RPL 1'], [guru1.id, 'Pemrograman Web', 'X RPL 1']);
+  }
+  if (guru) {
+    rows.push([guru.id, 'Informatika', 'X RPL 1'], [guru.id, 'Pemrograman Web', 'XI RPL 1']);
+  }
+  for (const [teacherId, subject, className] of rows) {
+    const id = `assign-${teacherId}-${subject}-${className}`.replace(/\s+/g, '-').toLowerCase();
+    added += assign.run(id, teacherId, subject, className).changes;
+  }
+  return added;
+}
+
 const run = db.transaction(() => ({
   users: seedUsers(),
   students: seedStudents(),
@@ -255,7 +286,8 @@ const run = db.transaction(() => ({
   bills: seedBills(),
   settings: seedSettings(),
   ekskul: seedEkskul(),
-  prestasi: seedPrestasi()
+  prestasi: seedPrestasi(),
+  relations: seedRelations()
 }));
 
 const added = run();

@@ -58,6 +58,14 @@ Semua password `Password123` kecuali yang tertulis lain.
 | siswa@smk.id | siswa (password `siswa123`) | - |
 | ortu@smk.id | orang_tua (password `ortu123`) | - |
 
+Relasi demo yang sudah terisi:
+
+| Relasi | Isi |
+|--------|-----|
+| Orang tua → anak | `ortu@smk.id` → `std-001` (Ahmad Fauzi), `std-002` (Bella Putri Lestari) |
+| Guru → mapel/kelas | `guru1@smk.id` → Informatika X RPL 1, Pemrograman Web X RPL 1 |
+| Guru → mapel/kelas | `guru@smk.id` → Informatika X RPL 1, Pemrograman Web XI RPL 1 |
+
 ## Relasi data
 
 Dua tabel relasi dipakai untuk pembatasan data:

@@ -31,14 +31,15 @@
 
 | Modul | Keterangan |
 |-------|------------|
-| Autentikasi | Login & register berbasis role (admin, guru, siswa, orang tua); admin dari email khusus |
-| Siswa & Kelas | CRUD siswa, kelas, jurusan |
-| Guru & Mapel | CRUD guru, mata pelajaran, penugasan guru-mapel |
+| Autentikasi | Login berbasis peran: 10 role (admin, kepala_sekolah, waka, guru_mapel, wali_kelas, kepala_tu, staff_tu, guru, siswa, orang_tua) |
+| Siswa & Kelas | CRUD siswa, kelas, jurusan; data dibatasi per peran |
+| Guru & Mapel | CRUD guru, mata pelajaran, penugasan guru-mapel-kelas |
 | Jadwal | Jadwal per kelas, guru, hari |
-| Nilai | Input nilai tugas, UTS, UAS, praktik |
-| Absensi | Presensi hadir/izin/sakit/alpha |
-| Pengumuman | Buat/edit pengumuman oleh guru |
-| Pembayaran | Tagihan SPP, status pembayaran, unggah bukti bayar |
+| Nilai | Input nilai per mapel; guru hanya menulis mapel + kelas yang diampu |
+| Absensi | Presensi hadir/izin/sakit/alfa; guru/wali kelas dibatasi kelasnya |
+| Pengumuman | Buat/edit pengumuman oleh admin dan pimpinan |
+| Pembayaran | Tagihan SPP, status pembayaran, unggah bukti bayar (orang tua hanya untuk anaknya) |
+| Ekskul & Prestasi | CRUD kegiatan dan prestasi siswa oleh admin dan pimpinan |
 
 ---
 
@@ -93,24 +94,27 @@ Aplikasi ini menjawab 4 kebutuhan utama sekolah SMK:
 ## 6. STRUKTUR PROYEK
 
 ```
-Akademik-Sekolah-Dengan-DB/
+akademik/
 +-- setup.bat / setup.sh     # Instalasi otomatis
-+-- README.md                # Panduan cepat
-+-- TEAM-DOCS.md             # Struktur tim 4 orang
++-- README.md                # Panduan cepat + akun login
++-- docs/                    # Dokumentasi lengkap
 +-- backend/
 |   +-- server.js            # Entry point
-|   +-- database.js          # Skema tabel SQLite
+|   +-- database.js          # Skema tabel SQLite + migrasi
+|   +-- scope.js             # Pembatasan data per peran
 |   +-- middleware/auth.js    # JWT verification
+|   +-- middleware/roleCheck.js  # authorizeRoles
 |   +-- routes/
 |   |   +-- auth.js, students.js, teachers.js
 |   |   +-- grades.js, attendances.js, schedules.js
 |   |   +-- billings.js, announcements.js, settings.js
+|   |   +-- ekskul.js, prestasi.js, relations.js
 |   +-- scripts/
-|       +-- seedAdmin.js      # Seed admin default
+|       +-- seedDemo.js      # Seed data demo
 +-- frontend/
     +-- src/
     |   +-- main.ts
-    |   +-- router/index.ts   # Routes + guards
+    |   +-- router/index.ts   # Routes + guards per peran
     |   +-- stores/           # Pinia state
     |   +-- services/api.js   # Axios + JWT interceptor
     |   +-- composables/
@@ -135,4 +139,19 @@ cd backend && npm run dev
 cd frontend && npm run dev
 ```
 
-**Login default:** `admin@example.com` / `Password123`
+**Login default:**
+
+| Peran | Email | Password |
+|-------|-------|----------|
+| Administrator | `admin@example.com` | `Password123` |
+| Kepala Sekolah | `kepsek@smk.id` | `Password123` |
+| Wakil Kepala Sekolah | `waka@smk.id` | `Password123` |
+| Wali Kelas X RPL 1 | `wali1@smk.id` | `Password123` |
+| Guru Mapel | `guru1@smk.id` | `Password123` |
+| Guru | `guru@smk.id` | `guru123` |
+| Kepala Tata Usaha | `kepalatu@smk.id` | `Password123` |
+| Staf Tata Usaha | `stafftu@smk.id` | `Password123` |
+| Siswa | `siswa@smk.id` | `siswa123` |
+| Orang Tua | `ortu@smk.id` | `ortu123` |
+
+Matriks hak akses lengkap: [`roles-permissions.md`](roles-permissions.md).

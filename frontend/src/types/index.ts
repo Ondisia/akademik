@@ -1,4 +1,14 @@
-export type UserRole = 'admin' | 'guru' | 'siswa' | 'orang_tua'
+export type UserRole =
+  | 'admin'
+  | 'kepala_sekolah'
+  | 'waka'
+  | 'guru_mapel'
+  | 'wali_kelas'
+  | 'kepala_tu'
+  | 'staff_tu'
+  | 'guru'
+  | 'siswa'
+  | 'orang_tua'
 
 export interface User {
   id: string

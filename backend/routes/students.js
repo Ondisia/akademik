@@ -4,12 +4,21 @@ const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
 
+// Batasi data sesuai peran; dipakai untuk daftar dan detail.
+function scopeFor(user) {
+  if (user.role === 'siswa') return { sql: 'id = ?', params: [user.id] };
+  if (user.role === 'wali_kelas' && user.class) return { sql: 'class = ?', params: [user.class] };
+  // TODO: orang_tua belum punya relasi anak, sementara tampil semua
+  return { sql: '1 = 1', params: [] };
+}
+
 // GET /api/students — ambil semua siswa
 router.get('/', authenticateToken, (req, res) => {
   const { search, class: classFilter } = req.query;
   let query = 'SELECT * FROM students';
-  const params = [];
-  const conditions = [];
+  const scope = scopeFor(req.user);
+  const params = [...scope.params];
+  const conditions = [scope.sql];
 
   if (search) {
     conditions.push("(name LIKE ? OR niup LIKE ?)");
@@ -20,9 +29,7 @@ router.get('/', authenticateToken, (req, res) => {
     params.push(classFilter);
   }
 
-  if (conditions.length > 0) {
-    query += ' WHERE ' + conditions.join(' AND ');
-  }
+  query += ' WHERE ' + conditions.join(' AND ');
   query += ' ORDER BY name ASC';
 
   const students = db.prepare(query).all(...params);
@@ -31,13 +38,16 @@ router.get('/', authenticateToken, (req, res) => {
 
 // GET /api/students/:id
 router.get('/:id', authenticateToken, (req, res) => {
-  const student = db.prepare('SELECT * FROM students WHERE id = ?').get(req.params.id);
+  const scope = scopeFor(req.user);
+  const student = db
+    .prepare(`SELECT * FROM students WHERE id = ? AND (${scope.sql})`)
+    .get(req.params.id, ...scope.params);
   if (!student) return res.status(404).json({ message: 'Siswa tidak ditemukan' });
   res.json(student);
 });
 
 // POST /api/students — tambah siswa
-router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu'), (req, res) => {
   const { name, niup, gender, class: studentClass, status } = req.body;
 
   if (!name || !niup || !gender || !studentClass) {
@@ -62,7 +72,7 @@ router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
 });
 
 // PUT /api/students/:id — update siswa
-router.put('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
+router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu'), (req, res) => {
   const { name, niup, gender, class: studentClass, status } = req.body;
   const { id } = req.params;
 
@@ -93,14 +103,14 @@ router.put('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
 });
 
 // DELETE /api/students/:id — hapus siswa
-router.delete('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
+router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu'), (req, res) => {
   const result = db.prepare('DELETE FROM students WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ message: 'Siswa tidak ditemukan' });
   res.json({ message: 'Siswa berhasil dihapus' });
 });
 
 // POST /api/students/bulk — import masal
-router.post('/bulk', authenticateToken, authorizeRoles('admin'), (req, res) => {
+router.post('/bulk', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu'), (req, res) => {
   const { students } = req.body;
   if (!Array.isArray(students) || students.length === 0) {
     return res.status(400).json({ message: 'Data siswa tidak valid' });

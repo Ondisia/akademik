@@ -253,7 +253,7 @@ const authStore = useAuthStore()
 const prestasiStore = usePrestasiStore()
 const { exportToCsv } = useExport()
 
-const canEdit = computed(() => authStore.user?.role === 'admin')
+const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka'].includes(authStore.user?.role || ''))
 
 const kelasFilter = ref('')
 const juaraFilter = ref('')

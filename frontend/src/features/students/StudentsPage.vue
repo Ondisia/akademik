@@ -9,7 +9,7 @@
           {{ studentStore.filteredStudents.length }} Siswa terverifikasi dalam database
         </p>
       </div>
-      <div v-if="authStore.user?.role === 'admin'" class="flex gap-3">
+      <div v-if="canEdit" class="flex gap-3">
         <Button variant="secondary" size="lg" @click="openImportModal">
           <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -117,7 +117,7 @@
               <th class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em]">Identitas (NIUP)</th>
               <th class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em] text-center">Jenis Kelamin</th>
               <th class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em] text-center">Klaster</th>
-              <th v-if="authStore.user?.role === 'admin'" class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em] text-right">Aksi</th>
+              <th v-if="canEdit" class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em] text-right">Aksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-surface-100">
@@ -152,7 +152,7 @@
                 </span>
               </td>
 
-              <td v-if="authStore.user?.role === 'admin'" class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-right">
+              <td v-if="canEdit" class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-right">
                 <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                   <button
                     @click="editStudent(student)"
@@ -306,6 +306,8 @@ import { useAuthStore } from '../../stores/auth'
 const studentStore = useStudentStore()
 const authStore = useAuthStore()
 const { exportToCsv } = useExport()
+
+const canEdit = computed(() => ['admin', 'kepala_tu', 'staff_tu'].includes(authStore.user?.role || ''))
 
 onMounted(async () => {
   if (studentStore.students.length === 0) {

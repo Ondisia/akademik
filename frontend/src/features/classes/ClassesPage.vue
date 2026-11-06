@@ -6,7 +6,7 @@
         <h1 class="text-xl font-bold text-slate-900 tracking-tight">Manajemen Kelas</h1>
         <p class="text-sm text-slate-500 mt-0.5">Kelola klaster kelas dan program keahlian siswa.</p>
       </div>
-      <Button variant="primary" @click="openAddModal">
+      <Button v-if="canEdit" variant="primary" @click="openAddModal">
         <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
         </svg>
@@ -77,7 +77,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4 4H3" />
             </svg>
           </RouterLink>
-          <div class="flex gap-1">
+          <div v-if="canEdit" class="flex gap-1">
             <button @click="openEditModal(cls)" class="p-2 text-slate-400 hover:text-indigo-600 rounded hover:bg-white transition-all">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -156,9 +156,13 @@ import { useTeacherStore } from '../../stores/teacher'
 import Button from '../../components/ui/Button.vue'
 import Modal from '../../components/ui/Modal.vue'
 import Input from '../../components/ui/Input.vue'
+import { useAuthStore } from '../../stores/auth'
 
 const studentStore = useStudentStore()
 const teacherStore = useTeacherStore()
+const authStore = useAuthStore()
+
+const canEdit = computed(() => ['admin', 'kepala_tu', 'staff_tu'].includes(authStore.user?.role || ''))
 const classes = ref<Class[]>([])
 const searchQuery = ref('')
 const filterMajor = ref('')

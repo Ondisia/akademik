@@ -21,7 +21,13 @@ const users = [
   { email: 'admin@example.com', password: 'Password123', name: 'Administrator', role: 'admin' },
   { email: 'guru@smk.id', password: 'guru123', name: 'Budi Santoso, S.Kom.', role: 'guru' },
   { email: 'siswa@smk.id', password: 'siswa123', name: 'Ahmad Fauzi', role: 'siswa' },
-  { email: 'ortu@smk.id', password: 'ortu123', name: 'Siti Aminah', role: 'orang_tua' }
+  { email: 'ortu@smk.id', password: 'ortu123', name: 'Siti Aminah', role: 'orang_tua' },
+  { id: 'user-kepsek', email: 'kepsek@smk.id', password: 'Password123', name: 'Kepala Sekolah', role: 'kepala_sekolah' },
+  { id: 'user-waka', email: 'waka@smk.id', password: 'Password123', name: 'Wakil Kepala Sekolah', role: 'waka' },
+  { id: 'user-wali1', email: 'wali1@smk.id', password: 'Password123', name: 'Wali Kelas X RPL 1', role: 'wali_kelas', class: 'X RPL 1' },
+  { id: 'user-guru1', email: 'guru1@smk.id', password: 'Password123', name: 'Guru Mapel', role: 'guru_mapel' },
+  { id: 'user-kepalatu', email: 'kepalatu@smk.id', password: 'Password123', name: 'Kepala Tata Usaha', role: 'kepala_tu' },
+  { id: 'user-stafftu', email: 'stafftu@smk.id', password: 'Password123', name: 'Staff Tata Usaha', role: 'staff_tu' }
 ];
 
 const students = [
@@ -74,13 +80,19 @@ const attendanceStatuses = ['hadir', 'hadir', 'hadir', 'hadir', 'izin', 'hadir',
 function seedUsers() {
   const find = db.prepare('SELECT id FROM users WHERE email = ?');
   const insert = db.prepare(
-    'INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)'
+    'INSERT OR IGNORE INTO users (id, name, email, password, role, class) VALUES (?, ?, ?, ?, ?, ?)'
   );
   let added = 0;
   for (const u of users) {
     if (find.get(u.email)) continue;
-    insert.run(uuid(), u.name, u.email, bcrypt.hashSync(u.password, 10), u.role);
-    added++;
+    added += insert.run(
+      u.id || uuid(),
+      u.name,
+      u.email,
+      bcrypt.hashSync(u.password, 10),
+      u.role,
+      u.class || null
+    ).changes;
   }
   return added;
 }
@@ -253,3 +265,9 @@ console.log('  admin@example.com / Password123');
 console.log('  guru@smk.id / guru123');
 console.log('  siswa@smk.id / siswa123');
 console.log('  ortu@smk.id / ortu123');
+console.log('  kepsek@smk.id / Password123');
+console.log('  waka@smk.id / Password123');
+console.log('  wali1@smk.id / Password123');
+console.log('  guru1@smk.id / Password123');
+console.log('  kepalatu@smk.id / Password123');
+console.log('  stafftu@smk.id / Password123');

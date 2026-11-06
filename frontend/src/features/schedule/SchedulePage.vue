@@ -9,7 +9,7 @@
           Penjadwalan aktivitas belajar mengajar SMK
         </p>
       </div>
-      <div v-if="isAdmin" class="flex gap-3">
+      <div v-if="canEdit" class="flex gap-3">
         <Button variant="primary" size="lg" @click="openAddModal">
           <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -66,7 +66,7 @@
                   <th class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em]">Mata Pelajaran</th>
                   <th class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em]">Guru Pengajar</th>
                   <th class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em]">Ruangan</th>
-                  <th v-if="isAdmin" class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em] text-right">Aksi</th>
+                  <th v-if="canEdit" class="px-4 sm:px-6 lg:px-8 py-5 text-[11px] font-black text-surface-500 uppercase tracking-[0.2em] text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-surface-100">
@@ -95,7 +95,7 @@
                       <span class="text-[12px] font-bold">{{ slot.room }}</span>
                     </div>
                   </td>
-                  <td v-if="isAdmin" class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-right">
+                  <td v-if="canEdit" class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-right">
                     <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                       <button @click="openEditModal(slot)" aria-label="Ubah jadwal" class="p-2.5 bg-surface-100 text-surface-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl border border-surface-200/60 transition-all">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,7 +111,7 @@
                   </td>
                 </tr>
                 <tr v-if="getSchedulesByClass(className).length === 0">
-                  <td :colspan="isAdmin ? 5 : 4" class="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-center">
+                  <td :colspan="canEdit ? 5 : 4" class="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-center">
                     <div class="w-16 h-16 bg-surface-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-surface-200">
                       <svg class="w-8 h-8 text-surface-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -209,7 +209,7 @@ const scheduleStore = useScheduleStore()
 const teacherStore = useTeacherStore()
 const studentStore = useStudentStore()
 
-const isAdmin = computed(() => authStore.user?.role === 'admin')
+const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka'].includes(authStore.user?.role || ''))
 
 onMounted(async () => {
   if (scheduleStore.schedules.length === 0) {

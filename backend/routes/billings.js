@@ -2,20 +2,30 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
-
-const authorizeRoles = (...roles) => (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-        return res.status(403).json({ message: 'Akses ditolak' });
-    }
-    next();
-};
+const authorizeRoles = require('../middleware/roleCheck');
 
 // GET /api/bills
 router.get('/', authenticateToken, (req, res) => {
+    const role = req.user.role;
+
+    // Guru mapel tidak memiliki akses ke tagihan
+    if (role === 'guru_mapel' || role === 'guru') {
+        return res.status(403).json({ message: 'Akses ditolak: guru mapel tidak memiliki akses ke tagihan' });
+    }
+
     const { studentId, status } = req.query;
     let query = `SELECT b.*, s.name AS student_name FROM bills b JOIN students s ON b.student_id = s.id`;
     const params = [];
     const conditions = [];
+
+    if (role === 'siswa') {
+        conditions.push('b.student_id = ?');
+        params.push(req.user.id);
+    } else if (role === 'wali_kelas' && req.user.class) {
+        conditions.push('s.class = ?');
+        params.push(req.user.class);
+    }
+    // TODO: orang_tua belum punya relasi anak, sementara tampil semua
 
     if (studentId) {
         conditions.push('b.student_id = ?');
@@ -34,7 +44,7 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 // POST /api/bills
-router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu'), (req, res) => {
     const { studentId, amount, period, description } = req.body;
 
     if (!studentId || !amount || !period) {
@@ -74,7 +84,8 @@ router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
 });
 
 // PUT /api/bills/:id
-router.put('/:id', authenticateToken, (req, res) => {
+// Orang tua tetap boleh mengunggah bukti bayar (hanya field bukti).
+router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu', 'orang_tua'), (req, res) => {
     const { id } = req.params;
     const { status, paymentProof, proofFilename } = req.body;
 
@@ -85,14 +96,8 @@ router.put('/:id', authenticateToken, (req, res) => {
 
     const userRole = req.user.role;
     const updatedAt = new Date().toISOString();
-    let updatedBill;
 
-    if (userRole === 'admin') {
-        const nextStatus = status || existing.status;
-        db.prepare(`
-      UPDATE bills SET status = ?, updated_at = ? WHERE id = ?
-    `).run(nextStatus, updatedAt, id);
-    } else if (userRole === 'orang_tua') {
+    if (userRole === 'orang_tua') {
         if (!paymentProof || !proofFilename) {
             return res.status(400).json({ message: 'Bukti bayar wajib diunggah oleh orang tua' });
         }
@@ -101,11 +106,21 @@ router.put('/:id', authenticateToken, (req, res) => {
       UPDATE bills SET payment_proof = ?, proof_filename = ?, status = ?, updated_at = ? WHERE id = ?
     `).run(paymentProof, proofFilename, 'pending_verification', updatedAt, id);
     } else {
-        return res.status(403).json({ message: 'Hanya admin atau orang tua yang dapat memperbarui data tagihan' });
+        const nextStatus = status || existing.status;
+        db.prepare(`
+      UPDATE bills SET status = ?, updated_at = ? WHERE id = ?
+    `).run(nextStatus, updatedAt, id);
     }
 
-    updatedBill = db.prepare('SELECT * FROM bills WHERE id = ?').get(id);
+    const updatedBill = db.prepare('SELECT * FROM bills WHERE id = ?').get(id);
     res.json(updatedBill);
+});
+
+// DELETE /api/bills/:id
+router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staff_tu'), (req, res) => {
+    const result = db.prepare('DELETE FROM bills WHERE id = ?').run(req.params.id);
+    if (result.changes === 0) return res.status(404).json({ message: 'Tagihan tidak ditemukan' });
+    res.json({ message: 'Tagihan berhasil dihapus' });
 });
 
 module.exports = router;

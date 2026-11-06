@@ -15,12 +15,23 @@ function mapGrade(g) {
   };
 }
 
+// Batasi data nilai sesuai peran; dipakai untuk daftar dan detail.
+function scopeFor(user) {
+  if (user.role === 'siswa') return { sql: 'student_id = ?', params: [user.id] };
+  if (user.role === 'wali_kelas' && user.class) {
+    return { sql: 'student_id IN (SELECT id FROM students WHERE class = ?)', params: [user.class] };
+  }
+  // TODO: guru_mapel belum punya relasi mapel-kelas; orang_tua belum punya relasi anak
+  return { sql: '1 = 1', params: [] };
+}
+
 // GET /api/grades
 router.get('/', authenticateToken, (req, res) => {
   const { studentId, subject } = req.query;
   let query = 'SELECT * FROM grades';
-  const params = [];
-  const conditions = [];
+  const scope = scopeFor(req.user);
+  const params = [...scope.params];
+  const conditions = [scope.sql];
 
   if (studentId) {
     conditions.push('student_id = ?');
@@ -30,7 +41,7 @@ router.get('/', authenticateToken, (req, res) => {
     conditions.push('subject = ?');
     params.push(subject);
   }
-  if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
+  query += ' WHERE ' + conditions.join(' AND ');
   query += ' ORDER BY date DESC';
 
   const grades = db.prepare(query).all(...params).map(mapGrade);
@@ -39,13 +50,16 @@ router.get('/', authenticateToken, (req, res) => {
 
 // GET /api/grades/:id
 router.get('/:id', authenticateToken, (req, res) => {
-  const grade = db.prepare('SELECT * FROM grades WHERE id = ?').get(req.params.id);
+  const scope = scopeFor(req.user);
+  const grade = db
+    .prepare(`SELECT * FROM grades WHERE id = ? AND (${scope.sql})`)
+    .get(req.params.id, ...scope.params);
   if (!grade) return res.status(404).json({ message: 'Data nilai tidak ditemukan' });
   res.json(mapGrade(grade));
 });
 
 // POST /api/grades
-router.post('/', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
   const { studentId, studentName, subject, score, date } = req.body;
 
   if (!studentId || !studentName || !subject || score === undefined || !date) {
@@ -64,7 +78,7 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) 
 });
 
 // PUT /api/grades/:id
-router.put('/:id', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) => {
+router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
   const { studentId, studentName, subject, score, date } = req.body;
   const { id } = req.params;
 
@@ -88,7 +102,7 @@ router.put('/:id', authenticateToken, authorizeRoles('admin', 'guru'), (req, res
 });
 
 // DELETE /api/grades/:id
-router.delete('/:id', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) => {
+router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
   const result = db.prepare('DELETE FROM grades WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ message: 'Data nilai tidak ditemukan' });
   res.json({ message: 'Data nilai berhasil dihapus' });

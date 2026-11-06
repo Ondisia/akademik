@@ -22,8 +22,8 @@ router.get('/', authenticateToken, (req, res) => {
   res.json(prestasi);
 });
 
-// POST /api/prestasi (hanya admin)
-router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
+// POST /api/prestasi (admin, kepala sekolah, waka)
+router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka'), (req, res) => {
   const { student_id, student_name, class: classField, kategori, juara, event, tahun, deskripsi } = req.body;
 
   if (!student_id || !student_name || !classField || !kategori || !juara || !event || !tahun) {
@@ -41,8 +41,8 @@ router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
   res.status(201).json(newPrestasi);
 });
 
-// PUT /api/prestasi/:id (hanya admin)
-router.put('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
+// PUT /api/prestasi/:id (admin, kepala sekolah, waka)
+router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka'), (req, res) => {
   const { id } = req.params;
   const { student_id, student_name, class: classField, kategori, juara, event, tahun, deskripsi } = req.body;
 
@@ -68,8 +68,8 @@ router.put('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
   res.json(updated);
 });
 
-// DELETE /api/prestasi/:id (hanya admin)
-router.delete('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
+// DELETE /api/prestasi/:id (admin, kepala sekolah, waka)
+router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka'), (req, res) => {
   const result = db.prepare('DELETE FROM prestasi WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ message: 'Prestasi tidak ditemukan' });
   res.json({ message: 'Prestasi berhasil dihapus' });

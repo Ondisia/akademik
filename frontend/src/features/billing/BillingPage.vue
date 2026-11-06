@@ -7,7 +7,7 @@
       </div>
 
       <button
-        v-if="authStore.hasRole('admin')"
+        v-if="canEdit"
         @click="openCreateBillModal"
         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors"
       >
@@ -78,14 +78,14 @@
 
             <div class="mt-6 flex flex-wrap gap-3">
               <button
-                v-if="authStore.hasRole('admin')"
+                v-if="canEdit"
                 @click="openEditBillModal(bill)"
                 class="px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"
               >
                 Ubah Status
               </button>
               <button
-                v-if="authStore.hasRole('orang_tua') && bill.status === 'requested'"
+                v-if="canPay && bill.status === 'requested'"
                 @click="openUploadProofModal(bill)"
                 class="px-4 py-2 text-sm font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
               >
@@ -189,6 +189,9 @@ import Modal from '../../components/ui/Modal.vue'
 const authStore = useAuthStore()
 const billingStore = useBillingStore()
 const studentStore = useStudentStore()
+
+const canEdit = computed(() => ['admin', 'kepala_tu', 'staff_tu'].includes(authStore.user?.role || ''))
+const canPay = computed(() => authStore.user?.role === 'orang_tua')
 
 const filterStatus = ref('')
 const showCreateModal = ref(false)

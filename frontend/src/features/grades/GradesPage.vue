@@ -250,7 +250,7 @@ const authStore = useAuthStore()
 const gradeStore = useGradeStore()
 const studentStore = useStudentStore()
 
-const canEdit = computed(() => ['admin', 'guru'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'].includes(authStore.user?.role || ''))
 const { exportToCsv } = useExport()
 
 const selectedClass = ref('')

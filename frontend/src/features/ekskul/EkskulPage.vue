@@ -197,7 +197,7 @@ const ekskulStore = useEkskulStore()
 const authStore = useAuthStore()
 const { exportToCsv } = useExport()
 
-const canEdit = computed(() => authStore.user?.role === 'admin')
+const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka'].includes(authStore.user?.role || ''))
 
 onMounted(async () => {
   if (ekskulStore.ekskuls.length === 0) {

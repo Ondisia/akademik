@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import type { UserRole } from '../types'
 import LoginPage from '../features/auth/LoginPage.vue'
 import DashboardPage from '../features/dashboard/DashboardPage.vue'
 import StudentsPage from '../features/students/StudentsPage.vue'
@@ -14,6 +15,8 @@ import ClassesPage from '../features/classes/ClassesPage.vue'
 import EkskulPage from '../features/ekskul/EkskulPage.vue'
 import PrestasiPage from '../features/prestasi/PrestasiPage.vue'
 
+const ALL_ROLES: UserRole[] = ['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'kepala_tu', 'staff_tu', 'guru', 'siswa', 'orang_tua']
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -27,62 +30,62 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     component: DashboardPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/classes',
     component: ClassesPage,
-    meta: { requiresAuth: true, roles: ['admin'] }
+    meta: { requiresAuth: true, roles: ['admin', 'kepala_sekolah', 'waka', 'kepala_tu', 'staff_tu', 'wali_kelas', 'guru_mapel'] }
   },
   {
     path: '/students',
     component: StudentsPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ['admin', 'kepala_sekolah', 'waka', 'kepala_tu', 'staff_tu', 'wali_kelas', 'guru_mapel', 'siswa', 'orang_tua'] }
   },
   {
     path: '/teachers',
     component: TeachersPage,
-    meta: { requiresAuth: true, roles: ['admin'] }
+    meta: { requiresAuth: true, roles: ['admin', 'kepala_sekolah', 'waka', 'kepala_tu', 'staff_tu'] }
   },
   {
     path: '/schedule',
     component: SchedulePage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/attendance',
     component: AttendancePage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/grades',
     component: GradesPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/communication',
     component: CommunicationPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/billing',
     component: BillingPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ['admin', 'kepala_sekolah', 'waka', 'kepala_tu', 'staff_tu', 'wali_kelas', 'siswa', 'orang_tua'] }
   },
   {
     path: '/announcements',
     component: AnnouncementsPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru', 'siswa', 'orang_tua'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/ekskul',
     component: EkskulPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   },
   {
     path: '/prestasi',
     component: PrestasiPage,
-    meta: { requiresAuth: true, roles: ['admin', 'guru'] }
+    meta: { requiresAuth: true, roles: ALL_ROLES }
   }
 ]
 

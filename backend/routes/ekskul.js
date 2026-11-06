@@ -10,8 +10,8 @@ router.get('/', authenticateToken, (req, res) => {
   res.json(ekskul);
 });
 
-// POST /api/ekskul (hanya admin)
-router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
+// POST /api/ekskul (admin, kepala sekolah, waka)
+router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka'), (req, res) => {
   const { nama, pembina, jadwal, deskripsi } = req.body;
 
   if (!nama) {
@@ -30,8 +30,8 @@ router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
   res.status(201).json(newEkskul);
 });
 
-// PUT /api/ekskul/:id (hanya admin)
-router.put('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
+// PUT /api/ekskul/:id (admin, kepala sekolah, waka)
+router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka'), (req, res) => {
   const { id } = req.params;
   const { nama, pembina, jadwal, deskripsi } = req.body;
 
@@ -53,8 +53,8 @@ router.put('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
   res.json(updated);
 });
 
-// DELETE /api/ekskul/:id (hanya admin)
-router.delete('/:id', authenticateToken, authorizeRoles('admin'), (req, res) => {
+// DELETE /api/ekskul/:id (admin, kepala sekolah, waka)
+router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka'), (req, res) => {
   const result = db.prepare('DELETE FROM ekskul WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ message: 'Ekskul tidak ditemukan' });
   res.json({ message: 'Ekskul berhasil dihapus' });

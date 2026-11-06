@@ -15,12 +15,23 @@ function mapAttendance(a) {
   };
 }
 
+// Batasi data absensi sesuai peran; dipakai untuk daftar.
+function scopeFor(user) {
+  if (user.role === 'siswa') return { sql: 'student_id = ?', params: [user.id] };
+  if (user.role === 'wali_kelas' && user.class) {
+    return { sql: 'student_id IN (SELECT id FROM students WHERE class = ?)', params: [user.class] };
+  }
+  // TODO: guru_mapel belum punya relasi mapel-kelas; orang_tua belum punya relasi anak
+  return { sql: '1 = 1', params: [] };
+}
+
 // GET /api/attendances
 router.get('/', authenticateToken, (req, res) => {
   const { date, studentId, status } = req.query;
   let query = 'SELECT * FROM attendances';
-  const params = [];
-  const conditions = [];
+  const scope = scopeFor(req.user);
+  const params = [...scope.params];
+  const conditions = [scope.sql];
 
   if (date) {
     conditions.push('date = ?');
@@ -34,7 +45,7 @@ router.get('/', authenticateToken, (req, res) => {
     conditions.push('status = ?');
     params.push(status);
   }
-  if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
+  query += ' WHERE ' + conditions.join(' AND ');
   query += ' ORDER BY date DESC';
 
   const attendances = db.prepare(query).all(...params).map(mapAttendance);
@@ -57,7 +68,7 @@ router.get('/stats/today', authenticateToken, (req, res) => {
 });
 
 // POST /api/attendances — simpan satu/banyak absensi
-router.post('/', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
   const { attendances } = req.body;
 
   if (!Array.isArray(attendances) || attendances.length === 0) {
@@ -86,7 +97,7 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) 
 });
 
 // DELETE /api/attendances/:id
-router.delete('/:id', authenticateToken, authorizeRoles('admin', 'guru'), (req, res) => {
+router.delete('/:id', authenticateToken, authorizeRoles('admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'), (req, res) => {
   const result = db.prepare('DELETE FROM attendances WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ message: 'Data absensi tidak ditemukan' });
   res.json({ message: 'Absensi berhasil dihapus' });

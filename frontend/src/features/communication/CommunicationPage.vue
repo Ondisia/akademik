@@ -6,6 +6,7 @@
         <p class="text-sm text-slate-500 mt-1">Kelola pesan dan pengumuman penting antar pengguna sistem akademik.</p>
       </div>
       <button
+        v-if="canEdit"
         @click="openNewMessageModal"
         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors"
       >
@@ -117,10 +118,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useAuthStore } from '../../stores/auth'
 import Input from '../../components/ui/Input.vue'
 import Modal from '../../components/ui/Modal.vue'
 
+const authStore = useAuthStore()
+
 const showMessageModal = ref(false)
+
+const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'].includes(authStore.user?.role || ''))
 
 const inboxMessages = ref([
   {

@@ -18,7 +18,6 @@
         </span>
       </Button>
       <Button v-if="canEdit" variant="outline" class="no-print" @click="exportAttendance">Ekspor CSV</Button>
-      <Button v-if="canEdit" variant="ghost" class="no-print" @click="printPage">Cetak ke PDF</Button>
     </div>
 
     <!-- Controls Bar -->
@@ -281,10 +280,6 @@ const getAttendanceNote = (studentId: string) => {
 
 const setAttendanceNote = (studentId: string, note: string) => {
   attendanceNotesMap.value.set(studentId, note)
-}
-
-const printPage = () => {
-  window.print()
 }
 
 const exportAttendance = () => {

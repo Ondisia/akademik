@@ -23,7 +23,6 @@
           Registrasi Siswa
         </Button>
         <Button variant="outline" size="lg" class="no-print" @click="exportStudents">Ekspor CSV</Button>
-        <Button variant="ghost" size="lg" class="no-print" @click="printPage">Cetak ke PDF</Button>
       </div>
     </div>
 
@@ -462,10 +461,6 @@ const deleteStudent = async (id: string) => {
 const closeModal = () => {
   showModal.value = false
   clearForm()
-}
-
-const printPage = () => {
-  window.print()
 }
 
 const exportStudents = () => {

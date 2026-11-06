@@ -17,7 +17,6 @@
           Tambah Prestasi
         </Button>
         <Button variant="outline" size="lg" class="no-print" @click="exportPrestasi">Ekspor CSV</Button>
-        <Button variant="ghost" size="lg" class="no-print" @click="printPage">Cetak ke PDF</Button>
       </div>
     </div>
 
@@ -352,10 +351,6 @@ const savePrestasi = async () => {
   } else {
     alert(`Gagal menyimpan prestasi: ${prestasiStore.error}`)
   }
-}
-
-const printPage = () => {
-  window.print()
 }
 
 const deletePrestasi = async (id: string) => {

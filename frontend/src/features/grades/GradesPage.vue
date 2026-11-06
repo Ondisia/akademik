@@ -16,7 +16,6 @@
         Input Nilai
       </Button>
       <Button v-if="canEdit" variant="outline" size="lg" class="no-print" @click="exportGrades">Ekspor CSV</Button>
-      <Button v-if="canEdit" variant="ghost" size="lg" class="no-print" @click="printPage">Cetak ke PDF</Button>
     </div>
 
     <!-- Filters Bar -->
@@ -375,10 +374,6 @@ const saveGrade = async () => {
   } else {
     alert(`Gagal menyimpan nilai: ${gradeStore.error}`)
   }
-}
-
-const printPage = () => {
-  window.print()
 }
 
 const deleteGrade = async (id: string) => {

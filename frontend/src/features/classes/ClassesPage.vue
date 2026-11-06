@@ -162,7 +162,7 @@ const studentStore = useStudentStore()
 const teacherStore = useTeacherStore()
 const authStore = useAuthStore()
 
-const canEdit = computed(() => ['admin', 'kepala_tu', 'staff_tu'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_tu', 'staff_tu']))
 const classes = ref<Class[]>([])
 const searchQuery = ref('')
 const filterMajor = ref('')

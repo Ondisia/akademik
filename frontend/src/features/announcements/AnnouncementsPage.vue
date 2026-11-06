@@ -183,7 +183,7 @@ import Modal from '../../components/ui/Modal.vue'
 const authStore = useAuthStore()
 const announcementStore = useAnnouncementStore()
 
-const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_sekolah', 'waka']))
 
 onMounted(async () => {
   if (announcementStore.announcements.length === 0) {

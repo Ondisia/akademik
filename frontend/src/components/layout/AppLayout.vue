@@ -45,7 +45,7 @@
           <img :src="authStore.user?.avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
           <div class="min-w-0">
             <p class="text-xs font-semibold text-slate-900 truncate">{{ authStore.user?.name }}</p>
-            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{{ authStore.user?.role }}</p>
+            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{{ userRolesLabel }}</p>
           </div>
         </div>
         <button 
@@ -101,6 +101,7 @@
 import { ref, computed, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import type { UserRole } from '../../types'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -218,13 +219,18 @@ const navigationConfig = [
 ]
 
 const navigationItems = computed(() => {
-  const userRole = authStore.user?.role || ''
+  const userRoles = authStore.user?.roles || (authStore.user?.role ? [authStore.user.role] : [])
   return navigationConfig
     .map(group => ({
       category: group.category,
-      items: group.items.filter(item => item.roles.includes(userRole))
+      items: group.items.filter(item => (item.roles as UserRole[]).some((r) => userRoles.includes(r)))
     }))
     .filter(group => group.items.length > 0)
+})
+
+const userRolesLabel = computed(() => {
+  const userRoles = authStore.user?.roles || (authStore.user?.role ? [authStore.user.role] : [])
+  return userRoles.join(', ')
 })
 
 const currentRouteLabel = computed(() => {

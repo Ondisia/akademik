@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
-const { isTeacher, recordScope, canManageStudent, canManageSubject } = require('../scope');
+const { isTeacher, gradeScope, canManageStudent, canManageSubject } = require('../scope');
 
 function mapGrade(g) {
   return {
@@ -18,13 +18,7 @@ function mapGrade(g) {
 
 // Batasi data nilai sesuai peran; dipakai untuk daftar dan detail.
 function scopeFor(user) {
-  const scope = recordScope(user);
-  if (!isTeacher(user)) return scope;
-  // Guru mapel: hanya mapel yang diampu (kelas sudah dibatasi recordScope).
-  return {
-    sql: `${scope.sql} AND subject IN (SELECT subject FROM teacher_assignments WHERE teacher_id = ?)`,
-    params: [...scope.params, user.id]
-  };
+  return gradeScope(user);
 }
 
 // GET /api/grades

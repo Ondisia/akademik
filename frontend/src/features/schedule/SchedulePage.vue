@@ -209,7 +209,7 @@ const scheduleStore = useScheduleStore()
 const teacherStore = useTeacherStore()
 const studentStore = useStudentStore()
 
-const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_sekolah', 'waka']))
 
 onMounted(async () => {
   if (scheduleStore.schedules.length === 0) {

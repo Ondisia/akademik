@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         const data = await response.json()
-        user.value = data.user
+        user.value = normalizeUser(data.user)
         isAuthenticated.value = true
       } catch (e) {
         localStorage.removeItem('token')
@@ -55,7 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      user.value = data.user
+      user.value = normalizeUser(data.user)
       isAuthenticated.value = true
       
       localStorage.setItem('token', data.token)
@@ -78,12 +78,24 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('currentUser')
   }
 
-  const hasRole = (role: UserRole | UserRole[]): boolean => {
+  const hasAnyRole = (roles: UserRole[]): boolean => {
     if (!user.value) return false
-    if (Array.isArray(role)) {
-      return role.includes(user.value.role)
+    const userRoles = user.value.roles || (user.value.role ? [user.value.role] : [])
+    return roles.some((r) => userRoles.includes(r))
+  }
+
+  // Normalisasi `roles` dari backend (bisa string JSON atau array) menjadi array.
+  const normalizeUser = (u: any): User => {
+    if (!u) return u
+    if (u.roles && typeof u.roles === 'string') {
+      try {
+        u.roles = JSON.parse(u.roles) as UserRole[]
+      } catch {
+        u.roles = u.role ? [u.role] : []
+      }
     }
-    return user.value.role === role
+    if (!u.roles && u.role) u.roles = [u.role]
+    return u
   }
 
   return {
@@ -94,6 +106,6 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     login,
     logout,
-    hasRole
+    hasAnyRole
   }
 })

@@ -3,32 +3,25 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
-const { isChildOf } = require('../scope');
+const { billingScope, isChildOf, getRoles } = require('../scope');
 
 // GET /api/bills
 router.get('/', authenticateToken, (req, res) => {
-    const role = req.user.role;
+    const userRoles = getRoles(req.user);
+    const TEACHER_ONLY = ['guru_mapel', 'guru'];
 
-    // Guru mapel tidak memiliki akses ke tagihan
-    if (role === 'guru_mapel' || role === 'guru') {
-        return res.status(403).json({ message: 'Akses ditolak: guru mapel tidak memiliki akses ke tagihan' });
+    // Guru murni tidak memiliki akses ke tagihan.
+    // Multi-role (misal wali_kelas + guru_mapel) tetap boleh via scope role lain.
+    if (userRoles.length > 0 && userRoles.every((r) => TEACHER_ONLY.includes(r))) {
+        return res.status(403).json({ message: 'Akses ditolak: guru tidak memiliki akses ke tagihan' });
     }
+
+    const scope = billingScope(req.user);
 
     const { studentId, status } = req.query;
     let query = `SELECT b.*, s.name AS student_name FROM bills b JOIN students s ON b.student_id = s.id`;
-    const params = [];
-    const conditions = [];
-
-    if (role === 'siswa') {
-        conditions.push('b.student_id = ?');
-        params.push(req.user.id);
-    } else if (role === 'wali_kelas' && req.user.class) {
-        conditions.push('s.class = ?');
-        params.push(req.user.class);
-    } else if (role === 'orang_tua') {
-        conditions.push('b.student_id IN (SELECT student_id FROM parent_students WHERE parent_id = ?)');
-        params.push(req.user.id);
-    }
+    const params = [...scope.params];
+    const conditions = [scope.sql];
 
     if (studentId) {
         conditions.push('b.student_id = ?');
@@ -97,10 +90,10 @@ router.put('/:id', authenticateToken, authorizeRoles('admin', 'kepala_tu', 'staf
         return res.status(404).json({ message: 'Tagihan tidak ditemukan' });
     }
 
-    const userRole = req.user.role;
+    const userRoles = getRoles(req.user);
     const updatedAt = new Date().toISOString();
 
-    if (userRole === 'orang_tua') {
+    if (userRoles.includes('orang_tua')) {
         if (!isChildOf(req.user, existing.student_id)) {
             return res.status(403).json({ message: 'Akses ditolak: tagihan bukan milik anak Anda' });
         }

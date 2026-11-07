@@ -33,9 +33,10 @@ router.post('/login', (req, res) => {
   // Return user without password
   const { password: _, ...userWithoutPassword } = user;
 
-  // Generate JWT token (class dipakai untuk scoping wali kelas)
+  // Generate JWT token (roles dan class dipakai untuk scoping multi-role)
+  const roles = typeof user.roles === 'string' ? JSON.parse(user.roles || '[]') : (user.roles || [user.role]);
   const token = jwt.sign(
-    { id: user.id, name: user.name, email: user.email, role: user.role, class: user.class || null },
+    { id: user.id, name: user.name, email: user.email, roles, class: user.class || null },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
@@ -45,7 +46,7 @@ router.post('/login', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', authenticateToken, (req, res) => {
-  const user = db.prepare('SELECT id, name, email, role, avatar, class FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, name, email, role, avatar, class, roles FROM users WHERE id = ?').get(req.user.id);
 
   if (!user) {
     return res.status(404).json({ message: 'User tidak ditemukan' });

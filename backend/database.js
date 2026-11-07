@@ -128,10 +128,15 @@ db.exec(`
   );
 `);
 
-// Kolom class dipakai untuk scoping wali kelas. Migrasi idempotent untuk DB lama.
+// Kolom class dipakai untuk scoping wali kelas.
+// Kolom roles (JSON array) dipakai untuk multi-role pada satu akun.
+// Migrasi idempotent untuk DB lama.
 const userColumns = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
 if (!userColumns.includes('class')) {
   db.exec('ALTER TABLE users ADD COLUMN class TEXT');
+}
+if (!userColumns.includes('roles')) {
+  db.exec('ALTER TABLE users ADD COLUMN roles TEXT');
 }
 
 module.exports = db;

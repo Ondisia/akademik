@@ -216,7 +216,7 @@ import Input from '../../components/ui/Input.vue'
 
 const authStore = useAuthStore()
 const teacherStore = useTeacherStore()
-const isAdmin = computed(() => authStore.user?.role === 'admin')
+const isAdmin = computed(() => authStore.hasAnyRole(['admin']))
 
 onMounted(async () => {
   if (teacherStore.teachers.length === 0) {

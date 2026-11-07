@@ -190,8 +190,8 @@ const authStore = useAuthStore()
 const billingStore = useBillingStore()
 const studentStore = useStudentStore()
 
-const canEdit = computed(() => ['admin', 'kepala_tu', 'staff_tu'].includes(authStore.user?.role || ''))
-const canPay = computed(() => authStore.user?.role === 'orang_tua')
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_tu', 'staff_tu']))
+const canPay = computed(() => authStore.hasAnyRole(['orang_tua']))
 
 const filterStatus = ref('')
 const showCreateModal = ref(false)

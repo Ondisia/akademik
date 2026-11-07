@@ -306,7 +306,7 @@ const studentStore = useStudentStore()
 const authStore = useAuthStore()
 const { exportToCsv } = useExport()
 
-const canEdit = computed(() => ['admin', 'kepala_tu', 'staff_tu'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_tu', 'staff_tu']))
 
 onMounted(async () => {
   if (studentStore.students.length === 0) {

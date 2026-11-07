@@ -106,7 +106,7 @@ router.beforeEach(async (to, _from, next) => {
     next('/login')
   } else if (to.path === '/login' && authStore.isAuthenticated) {
     next('/dashboard')
-  } else if (to.meta.roles && !((to.meta.roles as string[]).includes(authStore.user?.role || ''))) {
+  } else if (to.meta.roles && !((to.meta.roles as string[]).some((r) => authStore.hasAnyRole([r as UserRole])))) {
     next('/dashboard')
   } else {
     next()

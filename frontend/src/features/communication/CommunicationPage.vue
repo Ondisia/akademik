@@ -126,7 +126,7 @@ const authStore = useAuthStore()
 
 const showMessageModal = ref(false)
 
-const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru']))
 
 const inboxMessages = ref([
   {

@@ -24,7 +24,7 @@ const users = [
   { email: 'ortu@smk.id', password: 'ortu123', name: 'Siti Aminah', role: 'orang_tua' },
   { id: 'user-kepsek', email: 'kepsek@smk.id', password: 'Password123', name: 'Kepala Sekolah', role: 'kepala_sekolah' },
   { id: 'user-waka', email: 'waka@smk.id', password: 'Password123', name: 'Wakil Kepala Sekolah', role: 'waka' },
-  { id: 'user-wali1', email: 'wali1@smk.id', password: 'Password123', name: 'Wali Kelas X RPL 1', role: 'wali_kelas', class: 'X RPL 1' },
+  { id: 'user-wali1', email: 'wali1@smk.id', password: 'Password123', name: 'Wali Kelas X RPL 1', role: 'wali_kelas', class: 'X RPL 1', roles: ['wali_kelas', 'guru_mapel'] },
   { id: 'user-guru1', email: 'guru1@smk.id', password: 'Password123', name: 'Guru Mapel', role: 'guru_mapel' },
   { id: 'user-kepalatu', email: 'kepalatu@smk.id', password: 'Password123', name: 'Kepala Tata Usaha', role: 'kepala_tu' },
   { id: 'user-stafftu', email: 'stafftu@smk.id', password: 'Password123', name: 'Staff Tata Usaha', role: 'staff_tu' }
@@ -80,7 +80,7 @@ const attendanceStatuses = ['hadir', 'hadir', 'hadir', 'hadir', 'izin', 'hadir',
 function seedUsers() {
   const find = db.prepare('SELECT id FROM users WHERE email = ?');
   const insert = db.prepare(
-    'INSERT OR IGNORE INTO users (id, name, email, password, role, class) VALUES (?, ?, ?, ?, ?, ?)'
+    'INSERT OR IGNORE INTO users (id, name, email, password, role, class, roles) VALUES (?, ?, ?, ?, ?, ?, ?)'
   );
   let added = 0;
   for (const u of users) {
@@ -91,7 +91,8 @@ function seedUsers() {
       u.email,
       bcrypt.hashSync(u.password, 10),
       u.role,
-      u.class || null
+      u.class || null,
+      JSON.stringify(u.roles || [u.role])
     ).changes;
   }
   return added;
@@ -257,6 +258,7 @@ function seedRelations() {
   if (ortu) {
     for (const studentId of ['std-001', 'std-002']) added += linkParent.run(ortu.id, studentId).changes;
   }
+  const wali = findUser.get('wali1@smk.id');
 
   const assign = db.prepare(
     'INSERT OR IGNORE INTO teacher_assignments (id, teacher_id, subject, class) VALUES (?, ?, ?, ?)'
@@ -264,6 +266,9 @@ function seedRelations() {
   const rows = [];
   if (guru1) {
     rows.push([guru1.id, 'Informatika', 'X RPL 1'], [guru1.id, 'Pemrograman Web', 'X RPL 1']);
+  }
+  if (wali) {
+    rows.push([wali.id, 'Informatika', 'X RPL 1'], [wali.id, 'Pemrograman Web', 'X RPL 1']);
   }
   if (guru) {
     rows.push([guru.id, 'Informatika', 'X RPL 1'], [guru.id, 'Pemrograman Web', 'XI RPL 1']);

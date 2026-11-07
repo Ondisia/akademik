@@ -203,7 +203,7 @@ const authStore = useAuthStore()
 const studentStore = useStudentStore()
 const attendanceStore = useAttendanceStore()
 const { exportToCsv } = useExport()
-const canEdit = computed(() => ['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru'].includes(authStore.user?.role || ''))
+const canEdit = computed(() => authStore.hasAnyRole(['admin', 'kepala_sekolah', 'waka', 'guru_mapel', 'wali_kelas', 'guru']))
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const selectedClass = ref('')

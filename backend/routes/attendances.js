@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
 const authorizeRoles = require('../middleware/roleCheck');
-const { recordScope, canManageStudent } = require('../scope');
+const { attendanceScope, canManageStudent } = require('../scope');
 
 function mapAttendance(a) {
   return {
@@ -18,7 +18,7 @@ function mapAttendance(a) {
 
 // Batasi data absensi sesuai peran; dipakai untuk daftar dan statistik.
 function scopeFor(user) {
-  return recordScope(user);
+  return attendanceScope(user);
 }
 
 // GET /api/attendances
